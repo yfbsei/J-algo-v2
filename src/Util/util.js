@@ -1,15 +1,19 @@
 // https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Kline-Candlestick-Data
 
-const binance_candles = async (symbol = "BTCUSDT", interval = "5m", limit = 200) => {
-    const response = await fetch(`https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${interval}&limit=${limit + 1}`);
-    const data = await response.json();
-
+const binance_candles = async (market = "spot" || "futures", symbol = "BTCUSDT", interval = "1m", limit = 200) => {
+    const 
+        baseURL = (market === "spot") ? "api.binance.com/api/v3" : "fapi.binance.com/fapi/v1",
+        response = await fetch(`https://${baseURL}/klines?symbol=${symbol}&interval=${interval}&limit=${limit + 1}`),
+        data = await response.json();
+    
+    data.pop(); // removes un-closed candle    
+    
     return data.reduce((total, val, i) => {
-        total.open[i] = val[1];
-        total.high[i] = val[2]; 
-        total.low[i] = val[3];
-        total.close[i] = val[4];
-        total.volume[i] = val[5];
+        total.open[i] = parseFloat(val[1]);
+        total.high[i] = parseFloat(val[2]); 
+        total.low[i] = parseFloat(val[3]);
+        total.close[i] = parseFloat(val[4]);
+        total.volume[i] = parseFloat(val[5]);
         return total;
     }, {open:[], high:[], low:[], close:[], volume:[]} );
 
