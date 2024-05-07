@@ -33,8 +33,16 @@ const jTSv2 = (source = {}, length = 6, period = 16, multiplier = 9, fast_multip
     const close = source.close.slice(source.close.length - jATR.length); //TODO polish
     
     const signal = 
-    (var_ma[var_ma.length-1] > jATR[jATR.length-1] && var_ma[var_ma.length-2] <= jATR[jATR.length-2]) ? ['market long', close[close.length-1]] : // cross over
-    (var_ma[var_ma.length-1] < jATR[jATR.length-1] && var_ma[var_ma.length-2] >= jATR[jATR.length-2]) ? ['market short', close[close.length-1]] : // cross under
+    (var_ma[var_ma.length-1] > jATR[jATR.length-1] && var_ma[var_ma.length-2] <= jATR[jATR.length-2]) ? {
+        order: "market",
+        position: 'long', // cross over
+        entry: close[close.length-1]
+    } : 
+    (var_ma[var_ma.length-1] < jATR[jATR.length-1] && var_ma[var_ma.length-2] >= jATR[jATR.length-2]) ? {
+        order: "market",
+        position: 'short', // cross under
+        entry: close[close.length-1]
+    } :
     false;
         
     /* End */
