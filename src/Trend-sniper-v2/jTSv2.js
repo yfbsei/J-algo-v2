@@ -2,6 +2,8 @@ import { SMA } from 'technicalindicators';
 import variable_moving_average from '../Indicators/var_ma/var_ma.js';
 import SATR from '../Indicators/j-atr/jATR.js';
 
+// https://www.tradingview.com/script/gp70u4Rl-J-Trend-Sniper-v2/
+
 const jTSv2 = (source = {}, length = 6, period = 16, multiplier = 9, fast_multiplier = 5.1) => {
     /* Initialize */
     const 
@@ -36,17 +38,23 @@ const jTSv2 = (source = {}, length = 6, period = 16, multiplier = 9, fast_multip
     (var_ma[var_ma.length-1] > jATR[jATR.length-1] && var_ma[var_ma.length-2] <= jATR[jATR.length-2]) ? {
         order: "market",
         position: 'long', // cross over
-        entry: close[close.length-1]
+        location: close[close.length-1]
     } : 
     (var_ma[var_ma.length-1] < jATR[jATR.length-1] && var_ma[var_ma.length-2] >= jATR[jATR.length-2]) ? {
         order: "market",
         position: 'short', // cross under
-        entry: close[close.length-1]
+        location: close[close.length-1]
     } :
     false;
         
     /* End */
-    return signal;
+    return {
+        jATR,
+        var_ma,
+        jATR_sma,
+        fast_jATR_sma,
+        signal
+    };
 }
 
 export default jTSv2;
