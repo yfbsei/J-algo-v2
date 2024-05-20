@@ -11,7 +11,7 @@ const SATR = (source = {}, period = 16, multiplier = 9) => {
 			period: period
 		}),
 
-		nl = aTR.map(x => multiplier * x), // JS precision inaccurate, up to .4 
+		nl = aTR.map(x => multiplier * x), // JS precision inaccurate
 		close = source.close.slice(-nl.length);
 
 	for (let i = 0; i < nl.length; i++) {
