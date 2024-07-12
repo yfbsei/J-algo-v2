@@ -2,7 +2,7 @@ import { v4 as uuidv4 } from 'uuid';
 import jTSv2 from './Trend-sniper-v2/jTSv2.js';
 
 /* Global state initialize */
-const trades = [];
+// const trades = [];
 let [curr_trade, curr_trend] = [{}, ""];
 
 const j_algo = (source = {}) => {
@@ -13,8 +13,8 @@ const j_algo = (source = {}) => {
 
     /* Stop loss check*/
     if( (curr_trade.header?.position === "long" && source.low.at(-1) <= curr_trade.body.stop_loss) || (curr_trade.header?.position === "short" && source.high.at(-1) >= curr_trade.body.stop_loss) ) {
-        trades.push(curr_trade); // save
-        curr_trade = []; // reset
+        //trades.push(curr_trade); // save
+        curr_trade = {}; // reset
     }
 
     /* Stop loss update */
@@ -22,7 +22,7 @@ const j_algo = (source = {}) => {
         curr_trade.body.stop_loss = curr_jATR;
         return {
             header: {
-                id: curr_trade.header.id,
+                id: curr_trade.header.id
             },
 
             body: {
