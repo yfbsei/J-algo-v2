@@ -21,45 +21,51 @@ socket.on('message', (event) => {
       const candle = [k.o, k.h, k.l, k.c, k.v];
         
       for(const [i, key] of Object.keys(candels).entries()) {
-        candels[key].shift();
+        candels[key].shift(); // remove single old candle
         candels[key].push(parseFloat(candle[i]));           
       }
-       
+      
       const signal = j_algo(candels);
 
-      if(signal.body?.entry) send_signal({
-        avatar_url: 'https://yt3.googleusercontent.com/W5i3MAGlRSO-l3ykaKrWtieVp-hHJmufF4wZPxEEKsRz57LTXpLNsLw3gOITAJgLPb8KZ0uv=s160-c-k-c0x00ffffff-no-rj',
-        username: 'J-algo',
-        embeds: [{
-        title: `${coin} ${timeframe}in ${market} ${exchange}`,
-        description:
-        `
-        Trade Id: ${signal.header.id}
-        Time stamp: ${signal.header.time_stamp}
+      if(signal) push_signals(coin, timeframe, market, exchange, signal);
 
-        *Order type: ${signal.header.order}*
-        *Position: \`${signal.header.position}\`*
-
-        **Entry: \`${signal.body.entry}\`**
-        **Stop loss: \`${signal.body.stop_loss}\`**
-        `,
-        color: signal.header.position === "long" ? 0x00FF00 : 0xFF0000,
-        //image: {url: ''},
-      }]}, discord_channel);
-
-      if(signal.body?.update_stop_loss) send_signal({
-        avatar_url: 'https://yt3.googleusercontent.com/W5i3MAGlRSO-l3ykaKrWtieVp-hHJmufF4wZPxEEKsRz57LTXpLNsLw3gOITAJgLPb8KZ0uv=s160-c-k-c0x00ffffff-no-rj',
-        username: 'J-algo',
-        embeds: [{
-          title: "Stop loss update",
-          description:
-          `
-          Trade Id: ${signal.header.id}
-
-          **New Stop loss: \`${signal.body.update_stop_loss}\`**
-          `,
-          color: 0x999999,
-        }]}, discord_channel);
     }
-
 });
+
+const push_signals = (coin, timeframe, market, exchange, signal) => {
+
+  if(signal.body?.entry) send_signal({
+    avatar_url: 'https://yt3.googleusercontent.com/W5i3MAGlRSO-l3ykaKrWtieVp-hHJmufF4wZPxEEKsRz57LTXpLNsLw3gOITAJgLPb8KZ0uv=s160-c-k-c0x00ffffff-no-rj',
+    username: 'J-algo',
+    embeds: [{
+    title: `${coin} ${timeframe}in ${market} ${exchange}`,
+    description:
+    `
+    Trade Id: ${signal.header.id}
+    Time stamp: ${signal.header.time_stamp}
+
+    *Order type: ${signal.header.order}*
+    *Position: \`${signal.header.position}\`*
+
+    **Entry: \`${signal.body.entry}\`**
+    **Stop loss: \`${signal.body.stop_loss}\`**
+    `,
+    color: signal.header.position === "long" ? 0x00FF00 : 0xFF0000,
+    //image: {url: ''},
+  }]}, discord_channel);
+
+  if(signal.body?.update_stop_loss) send_signal({
+    avatar_url: 'https://yt3.googleusercontent.com/W5i3MAGlRSO-l3ykaKrWtieVp-hHJmufF4wZPxEEKsRz57LTXpLNsLw3gOITAJgLPb8KZ0uv=s160-c-k-c0x00ffffff-no-rj',
+    username: 'J-algo',
+    embeds: [{
+      title: "Stop loss update",
+      description:
+      `
+      Trade Id: ${signal.header.id}
+
+      **New Stop loss: \`${signal.body.update_stop_loss}\`**
+      `,
+      color: 0x999999,
+    }]}, discord_channel);
+
+}
