@@ -1,3 +1,4 @@
+import { divide, subtract, multiply, add, abs, round } from 'mathjs';
 import { SMA } from 'technicalindicators';
 
 const variable_moving_average = (source = {}, length = 6) => {
@@ -9,17 +10,16 @@ const variable_moving_average = (source = {}, length = 6) => {
         h_sma = SMA.calculate({period: length, values: source.high }),
         l_sma = SMA.calculate({period: length, values: source.low }),
 
-        close = source.close.slice(-c_sma.length);
+        close = source.close.slice(-c_sma.length); // same length as close_sma
 
-    for(let i = 0; i < c_sma.length; i++) {
-
+    for(let i = 0; i < close.length; i++) {
       const 
-          lv = Math.abs( (c_sma[i] - o_sma[i]) / (h_sma[i] - l_sma[i]) ),
-          value = lv * close[i] + (1 - lv) * (var_ma[i-1] || 0.0);
+          lv = abs( divide(subtract(c_sma[i], o_sma[i]), subtract(h_sma[i], l_sma[i])) ), 
+          value = add( multiply(lv, close[i]), multiply(subtract(1, lv), (var_ma[i-1] || 0.0)) );
 
-        var_ma.push( Math.round(value * 100) / 100); 
+        var_ma.push(value); 
     }
-    return var_ma;
+    return round(var_ma, 1);
 }
 
 export default variable_moving_average;

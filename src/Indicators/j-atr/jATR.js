@@ -1,3 +1,4 @@
+import { multiply, subtract, add, round } from 'mathjs';
 import { ATR } from 'technicalindicators';
 
 const SATR = (source = {}, period = 16, multiplier = 9) => {
@@ -11,8 +12,8 @@ const SATR = (source = {}, period = 16, multiplier = 9) => {
 			period: period
 		}),
 
-		nl = aTR.map(x => multiplier * x), // JS precision inaccurate
-		close = source.close.slice(-nl.length);
+		nl = aTR.map(x => multiply(multiplier, x)),
+		close = source.close.slice(-nl.length); // same length as nl
 
 	for (let i = 0; i < nl.length; i++) {
 		const
@@ -20,14 +21,14 @@ const SATR = (source = {}, period = 16, multiplier = 9) => {
 			pre_close = close[i - 1] || 0.0,
 
 		    val = 
-                (close[i] > pre_defATR && pre_close > pre_defATR) ? Math.max(pre_defATR, close[i] - nl[i]) :
-			    (close[i] < pre_defATR && pre_close < pre_defATR) ? Math.min(pre_defATR, close[i] + nl[i]) :
-			    (close[i] > pre_defATR) ? close[i] - nl[i] :
-			    close[i] + nl[i];
+                (close[i] > pre_defATR && pre_close > pre_defATR) ? Math.max(pre_defATR, subtract(close[i], nl[i]) ) :
+			    (close[i] < pre_defATR && pre_close < pre_defATR) ? Math.min(pre_defATR, add(close[i], nl[i]) ) :
+			    (close[i] > pre_defATR) ? subtract(close[i], nl[i]) :
+			    add(close[i], nl[i]);
 
 		defATR.push(val);
 	}
-	return defATR.map(x => Math.round(x * 100) / 100);
+	return round(defATR, 1);
 }
 
 export default SATR;

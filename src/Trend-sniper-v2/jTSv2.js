@@ -1,9 +1,9 @@
+import { divide, subtract, add, round } from 'mathjs';
 import { SMA } from 'technicalindicators';
 import variable_moving_average from '../Indicators/var_ma/var_ma.js';
 import SATR from '../Indicators/j-atr/jATR.js';
 
 // https://www.tradingview.com/script/gp70u4Rl-J-Trend-Sniper-v2/
-
 const jTSv2 = (source = {}, length = 6, period = 16, multiplier = 9, fast_multiplier = 5.1) => {
     /* Initialize */
     const 
@@ -11,39 +11,38 @@ const jTSv2 = (source = {}, length = 6, period = 16, multiplier = 9, fast_multip
         fast_jATR = SATR(source, period, fast_multiplier);
         
         const inital_val = 0.0;
+        
+        let var_ma = variable_moving_average(source, length); // same length as jATR
+        var_ma = var_ma.slice(var_ma.length - jATR.length); // same length as jATR
 
-        let var_ma = variable_moving_average(source, length); // needs to be same length as jATR
-        var_ma = var_ma.slice(var_ma.length - jATR.length); //TODO polish
-
-        /* Logic */
+    /* Logic */
     let jATR_sma = [], fast_jATR_sma = [];
 
         for (let i = 0; i < jATR.length; i++) {
             const [jATR_val, var_ma_val] = [jATR[i] || inital_val, var_ma[i] || inital_val];
-            jATR_sma.push( jATR_val > var_ma_val ? jATR_val - (jATR_val - var_ma_val) / 2 : jATR_val + (var_ma_val - jATR_val) / 2 );
+            jATR_sma.push( jATR_val > var_ma_val ? subtract(jATR_val, divide(subtract(jATR_val, var_ma_val), 2)) : add(jATR_val, divide(subtract(var_ma_val, jATR_val), 2)) );
         } 
 
         for (let i = 0; i < fast_jATR.length; i++) {
             const [fast_jATR_val, var_ma_val] = [fast_jATR[i] || inital_val, var_ma[i] || inital_val];
-            fast_jATR_sma.push( fast_jATR_val > var_ma_val ? fast_jATR_val - (fast_jATR_val - var_ma_val) / 2 : fast_jATR_val + (var_ma_val - fast_jATR_val) / 2 );
+            fast_jATR_sma.push( fast_jATR_val > var_ma_val ? subtract(fast_jATR_val, divide(subtract(fast_jATR_val, var_ma_val), 2)) : add(fast_jATR_val, divide(subtract(var_ma_val, fast_jATR_val), 2)) );
         }
         
-        jATR_sma = SMA.calculate({period: 21, values: jATR_sma}).map(x => Math.round(x * 100) / 100);
-        fast_jATR_sma = SMA.calculate({period: 9, values: fast_jATR_sma}).map(x => Math.round(x * 100) / 100);
+        jATR_sma = SMA.calculate({period: 21, values: jATR_sma}); // length
 
     /* Signal */
-    const close = source.close.slice(source.close.length - jATR.length); //TODO polish
+    const close = source.close.slice(source.close.length - jATR.length); // same length as jATR
     
     const signal = 
-    (var_ma[var_ma.length-1] > jATR[jATR.length-1] && var_ma[var_ma.length-2] <= jATR[jATR.length-2]) ? {
+    (var_ma.at(-1) > jATR.at(-1) && var_ma.at(-2) <= jATR.at(-2)) ? { // (-1) current candle, (-2) previous candle
         order: "market",
         position: 'long', // cross over
-        location: close[close.length-1]
+        location: close.at(-1) 
     } : 
-    (var_ma[var_ma.length-1] < jATR[jATR.length-1] && var_ma[var_ma.length-2] >= jATR[jATR.length-2]) ? {
+    (var_ma.at(-1) < jATR.at(-1) && var_ma.at(-2) >= jATR.at(-2)) ? { // (-1) current candle, (-2) previous candle
         order: "market",
         position: 'short', // cross under
-        location: close[close.length-1]
+        location: close.at(-1)
     } :
     false;
         
@@ -51,8 +50,8 @@ const jTSv2 = (source = {}, length = 6, period = 16, multiplier = 9, fast_multip
     return {
         jATR,
         var_ma,
-        jATR_sma,
-        fast_jATR_sma,
+        jATR_sma: round(jATR_sma, 1),
+        fast_jATR_sma: round(fast_jATR_sma, 1),
         signal
     };
 }
