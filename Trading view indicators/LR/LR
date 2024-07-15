@@ -1,0 +1,94 @@
+//@version=5
+indicator(title='LR [Jamallo]', overlay = true)
+
+// MACD
+fast_length = input(12, 'Fast Length MACD')
+slow_length = input(26, 'Slow Length MACD')
+src_macd = input(close, 'Source MACD')
+
+[macd, _, _] = ta.macd(src_macd, fast_length, slow_length, 1)
+
+// SuperTrend
+atrPeriod = input(10, "ATR Length")
+factor = input.float(3.0, "Factor", step = 0.01)
+
+[supertrend, direction] = ta.supertrend(factor, atrPeriod)
+
+
+// Percentile linear interpolation
+src_pli2 = input(close, 'Percentile linear interpolation group two')
+
+pr1 = ta.percentile_linear_interpolation(macd, 200, 90) // red
+pr3 = ta.percentile_linear_interpolation(macd, 200, 10) // green
+pr4 = ta.percentile_linear_interpolation(macd, 200, 99) // red
+pr6 = ta.percentile_linear_interpolation(macd, 200, 1) // green
+
+pr1_0 = ta.percentile_linear_interpolation(src_pli2, 200, 90) // red
+pr3_0 = ta.percentile_linear_interpolation(src_pli2, 200, 10) // green
+pr4_0 = ta.percentile_linear_interpolation(src_pli2, 200, 99) // red
+pr6_0 = ta.percentile_linear_interpolation(src_pli2, 200, 1) // green
+
+p1 = plot(pr1_0, color=color.new(color.red, 0))
+p2 = plot(pr3_0, color=color.new(color.green, 0))
+p3 = plot(pr4_0, color=color.new(color.red, 0), display=display.none)
+p4 = plot(pr6_0, color=color.new(color.green, 0), display=display.none)
+
+fill(p1, p3, color=color.new(color.teal, 40), display=display.none)
+fill(p2, p4, color=color.new(color.maroon, 40), display=display.none)
+
+// Logic - Up reversal 
+var bool cond = false
+cond := close < pr3_0 and macd < pr3 and close > pr6_0
+
+condArray = array.new_bool(50, false)
+for i = 0 to 50
+    array.push(condArray, cond[i])
+
+x = direction < 0 and array.includes(condArray, true)
+
+plotshape(cond, style=shape.circle, color=color.new(color.red, 0), location = location.belowbar,  size = size.tiny)
+
+// Logic - Down reversal 
+var bool cond_4 = false
+cond_4 := close > pr4_0 and macd > pr1
+
+cond_4Array = array.new_bool(50, false)
+for i = 0 to 50
+    array.push(cond_4Array, cond_4[i])
+
+y = direction > 0 and array.includes(cond_4Array, true)
+
+plotshape(cond_4, style=shape.circle, color=color.new(color.teal, 0), location = location.abovebar,  size = size.tiny)
+
+
+// SuperTrend plot
+bodyMiddle = plot((open + close) / 2, display=display.none)
+upTrend = plot(x ? supertrend : na, "Up Trend", color = color.green, style=plot.style_linebr)
+downTrend = plot(y ? supertrend : na, "Down Trend", color = color.red, style=plot.style_linebr)
+
+fill(bodyMiddle, upTrend, color.new(color.green, 90), fillgaps=false)
+fill(bodyMiddle, downTrend, color.new(color.red, 90), fillgaps=false)
+
+// Bollinger Bands
+src_bb = input(close, 'Source BB')
+length_bb = input(200, 'Length BB')
+mult = input(2.5, 'mult')
+[middle, upper, lower] = ta.bb(src_bb, length_bb, mult)
+plot(upper, "Upper", color=color.orange, style=plot.style_cross)
+plot(lower, "Lower", color=color.blue, style=plot.style_cross)
+
+
+// Debugger 
+// print(txt) =>
+//     // Create label on the first bar.
+//     var lbl = label.new(bar_index, na, txt, xloc.bar_index, yloc.price, color(na), label.style_none, color.gray, size.large, text.align_left)
+//     // On next bars, update the label's x and y position, and the text it displays.
+//     label.set_xy(lbl, bar_index, ta.highest(10)[1])
+//     label.set_text(lbl, txt)
+// print( str.tostring(a) )
+
+//EXTRA
+// cond_1 = close < pr6_0 and macd < pr6 
+// cond_3 = close > pr1_0 and macd > pr1 and close < pr4_0
+// plotshape(cond_1, style=shape.circle, color=color.new(color.maroon, 0), location = location.belowbar,  size = size.tiny)
+// plotshape(cond_3, style=shape.circle, color=color.new(color.blue, 0), location = location.abovebar,  size = size.tiny)

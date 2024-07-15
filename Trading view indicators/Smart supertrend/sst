@@ -1,0 +1,89 @@
+//@version=5
+indicator(title='Smart Supertrend', overlay=true, timeframe='')
+
+src = open
+prd = 2 //PP period
+factor = 3//Atr factor
+Pd = 12//Atr period
+Adxlen = 24//Adx length
+th = 24//Adx treshold
+
+/////////ADX
+// pdi = DIplus[Adxlen](close)
+// mdi = DIminus[Adxlen](close)
+// myadx = adx[Adxlen]
+// ladx = pdi > mdi and myadx > th //long trend
+// sadx = pdi < mdi and myadx > th //short trend
+
+[diplus, diminus, adx] = ta.dmi(Adxlen, 1)
+long_ladx = diplus > diminus and adx > th //long trend
+short_adx = diplus < diminus and adx > th //short trend
+
+////////pivothigh
+ph1 = high < high[prd]
+ph2 = ta.highest(high, prd) < high[prd]
+ph3 = high[prd] > ta.highest(high, prd)[prd+1]
+
+pivotH = 0.0
+if ph1 and ph2 and ph3
+    pivotH := high[prd]
+else
+    pivotH := pivotH
+
+////////pivotlow
+pl1 = low > low[prd]
+pl2 = ta.lowest(low, prd) > low[prd]
+pl3 = low[prd] < ta.lowest(low, prd)[prd+1]
+
+pivotL = 0.0
+if pl1 and pl2 and pl3
+    pivotL := low[prd]
+else
+    pivotL := pivotL
+
+////////Trailing
+center = 0.0
+lastpp = 0.0
+Tup = 0.0
+Tdown = 0.0
+Trend = 0.0
+
+if pivotH != pivotH[1]
+    lastpp := pivotH
+    center := (center*2+lastpp)/3
+else if pivotL != pivotL[1]
+    lastpp := pivotL
+    center := (center*2+lastpp)/3
+else 
+    lastpp := lastpp[1]
+    center := center[1]
+
+atr = ta.atr(Pd)
+Up = center-(factor*atr)
+Dn = center+(factor*atr)
+
+if close[1] > Tup[1]
+    Tup := math.max(Up,Tup[1])
+else
+    Tup := Up
+
+if close[1] < Tdown[1]
+    Tdown := math.min(Dn,Tdown[1])
+else
+    Tdown := Dn
+
+if close > Tdown[1]
+    Trend := 1
+else if close < Tup[1]
+    Trend := -1
+else
+    Trend := Trend[1]
+
+Trailings1 = 0.0
+if Trend == 1 
+    Trailings1 := Tup
+else
+    Trailings1 := Tdown
+
+//
+plot(Trend)

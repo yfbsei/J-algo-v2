@@ -1,0 +1,48 @@
+//@version=5
+indicator(title='BB Tape', overlay=true, max_labels_count=500, timeframe='')
+
+//Bollinger Bands 200SMA
+inner_length = input(200)
+outer_length = input(100)
+fast_length = input(21)
+src = input(close)
+
+[_, bbupper, bblower] = ta.bb(src, outer_length, 3)
+p1=plot(bbupper, color=color.red)
+p2=plot(bblower, color=color.teal)
+
+[_, bbupper1, bblower1] = ta.bb(src, outer_length, 4)
+p3=plot(bbupper1, color=color.red)
+p4=plot(bblower1, color=color.teal)
+
+fill(p1, p3, color=color.new(#ff0000, 95))
+fill(p2, p4, color=color.new(#198787, 95))
+//------
+
+//Overbought/Oversold Bands
+[m, u1, l1] = ta.bb(src, inner_length, 1)
+[_, u2, l2] = ta.bb(src, inner_length, 2)
+[_, u3, l3] = ta.bb(src, inner_length, 3)
+
+plot(m, 'middle')
+plot(ta.sma(src, fast_length), color=color.red)
+
+pu3 = plot(u3, 'Highest', color.new(color.red, 0), 1, display=display.none)
+pu2 = plot(u2, 'Upper-middle', color.new(color.orange, 0), 1, display=display.none)
+pu1 = plot(u1, 'Upper-lower', color.new(color.aqua, 0), 1, display=display.none)
+pl1 = plot(l1, 'Lower-upper', color.new(color.aqua, 0), 1, display=display.none)
+pl2 = plot(l2, 'Lower-middle', color.new(color.orange, 0), 1, display=display.none)
+pl3 = plot(l3, 'Lowest', color.new(color.red, 0), 1, display=display.none)
+
+// x = u3 > bbupper1
+// y = l3 < bblower1
+
+x = close < m
+y = close > m
+
+fill(pl2, pl3, color=color.new(color.red, y ? 100 : 70), title='Over-Bought')
+fill(pl1, pl2, color=color.new(#fa8072, y ? 100 : 70), title='Bought')
+
+fill(pu1, pu2, color=color.new(#9ef2e8, x ? 100 : 70), title='Sold')
+fill(pu2, pu3, color=color.new(color.green, x ? 100 : 70), title='Over-Sold')
+
