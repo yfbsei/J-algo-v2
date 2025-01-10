@@ -12,14 +12,14 @@ const j_algo = (source = {}) => {
     const curr_jATR = jATR.at(-1);
 
     /* Stop loss check*/
-    if( (curr_trade.header?.position === "long" && source.low.at(-1) <= curr_trade.body.stop_loss) || (curr_trade.header?.position === "short" && source.high.at(-1) >= curr_trade.body.stop_loss) ) {
+    if( (curr_trade.header) && ((curr_trade.header?.position === "long" && source.low.at(-1) <= curr_trade.body.stop_loss) || (curr_trade.header?.position === "short" && source.high.at(-1) >= curr_trade.body.stop_loss)) ) {
         //trades.push(curr_trade); // save
         curr_trade = {}; // reset
     }
 
     /* Stop loss update */
-    if( curr_trade.body && Math.trunc(curr_trade.body.stop_loss) !== Math.trunc(curr_jATR) && curr_jATR === jATR.at(-20) ) { // current jATR value is equivalent to previous 20 series of jATR
-        curr_trade.body.stop_loss = curr_jATR;
+    if( (curr_trade.body) && (Math.trunc(curr_trade.body.stop_loss) !== Math.trunc(curr_jATR)) && (curr_jATR === jATR.at(-20)) ) { // current jATR value is equivalent to the previous 20th value of jATR
+        curr_trade.body.stop_loss = curr_jATR;        
         return {
             header: {
                 id: curr_trade.header.id
@@ -31,6 +31,11 @@ const j_algo = (source = {}) => {
         };
     }
 
+    
+    if(signal) {
+    console.log(
+        signal
+    ) }
     if(!signal) return false; // end at no signal
 
     /* Template */
@@ -50,7 +55,7 @@ const j_algo = (source = {}) => {
     };
 
     /* Update states */
-    curr_trend = var_ma > jATR ? "up" : "down"; 
+    //curr_trend = var_ma > jATR ? "up" : "down"; 
     curr_trade = trade;
 
     /* End */
